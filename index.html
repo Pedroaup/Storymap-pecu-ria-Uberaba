@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storymap: Pecuária Digital em Uberaba</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 100vh; position: sticky; top: 0; }
+        .active-card { border-left-width: 4px; border-color: #b91c1c; background-color: #fef2f2; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-800">
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+        
+        <!-- NARRATIVA (STORYTELLING) -->
+        <div class="w-full md:w-5/12 p-6 md:p-12 overflow-y-auto max-h-screen border-r border-slate-200">
+            <header class="mb-12">
+                <span class="text-xs font-bold uppercase tracking-widest text-red-700">Storymap Interativo</span>
+                <h1 class="text-3xl font-black text-slate-900 mt-2 mb-4">Uberaba: A Capital da Pecuária 4.0</h1>
+                <p class="text-slate-600 leading-relaxed">
+                    Explore como a tecnologia, a biotecnologia e o manejo sustentável transformaram Uberaba no maior ecossistema de genética zebuína do planeta.
+                </p>
+            </header>
+
+            <!-- Passos da Jornada -->
+            <div class="space-y-8">
+                
+                <!-- Passo 1 -->
+                <div id="step-1" onclick="moveTo(0)" class="p-6 bg-white rounded-xl shadow-sm border border-slate-100 cursor-pointer transition-all hover:shadow-md active-card">
+                    <span class="text-xs font-bold text-red-700 uppercase">Estação 1: O Coração do Zebu</span>
+                    <h3 class="text-xl font-bold text-slate-900 mt-1 mb-2">Parque Fernando Costa (ABCZ)</h3>
+                    <p class="text-sm text-slate-600">Sede da Associação Brasileira dos Criadores de Zebu. Aqui, softwares de avaliação genética cruzam dados de milhões de animais para identificar os reprodutores mais eficientes e sustentáveis do mercado.</p>
+                    <div class="mt-3 text-xs font-semibold text-slate-500">📍 Centro Urbano / ABCZ</div>
+                </div>
+
+                <!-- Passo 2 -->
+                <div id="step-2" onclick="moveTo(1)" class="p-6 bg-white rounded-xl shadow-sm border border-slate-100 cursor-pointer transition-all hover:shadow-md">
+                    <span class="text-xs font-bold text-red-700 uppercase">Estação 2: Biotecnologia Industrial</span>
+                    <h3 class="text-xl font-bold text-slate-900 mt-1 mb-2">Centrais de Genética (BR-050)</h3>
+                    <p class="text-sm text-slate-600">As maiores multinacionais de biotecnologia animal estão às margens da rodovia. Laboratórios processam sêmen sexado, realizam fertilização *in vitro* (FIV) e congelamento de embriões de altíssimo valor de mercado.</p>
+                    <div class="mt-3 text-xs font-semibold text-slate-500">📍 Distrito Industrial / BR-050</div>
+                </div>
+
+                <!-- Passo 3 -->
+                <div id="step-3" onclick="moveTo(2)" class="p-6 bg-white rounded-xl shadow-sm border border-slate-100 cursor-pointer transition-all hover:shadow-md">
+                    <span class="text-xs font-bold text-red-700 uppercase">Estação 3: Sustentabilidade no Campo</span>
+                    <h3 class="text-xl font-bold text-slate-900 mt-1 mb-2">Fazendas Experimentais & ILPF</h3>
+                    <p class="text-sm text-slate-600">Nas fazendas da região, o uso de sistemas de Integração Lavoura-Pecuária-Floresta (ILPF) e análise de solo por sensores garantem a produção de "Carne Carbono Neutro", unindo agro e meio ambiente.</p>
+                    <div class="mt-3 text-xs font-semibold text-slate-500">📍 Zona Rural Noroeste</div>
+                </div>
+
+                <!-- Passo 4 -->
+                <div id="step-4" onclick="moveTo(3)" class="p-6 bg-white rounded-xl shadow-sm border border-slate-100 cursor-pointer transition-all hover:shadow-md">
+                    <span class="text-xs font-bold text-red-700 uppercase">Estação 4: O Boi Conectado</span>
+                    <h3 class="text-xl font-bold text-slate-900 mt-1 mb-2">Confinamento e IoT</h3>
+                    <p class="text-sm text-slate-600">Animais monitorados por brincos de identificação digital (RFID). Cochos eletrônicos pesam o gado individualmente a cada gole d'água, medindo a eficiência alimentar em tempo real.</p>
+                    <div class="mt-3 text-xs font-semibold text-slate-500">📍 Saída para Conceição das Alagoas</div>
+                </div>
+
+            </div>
+
+            <footer class="mt-16 pt-6 border-t border-slate-200 text-xs text-slate-400 text-center">
+                Storymap Uberaba Pecuária Digital &copy; 2026
+            </footer>
+        </div>
+
+        <!-- MAPA INTERATIVO (FIXO À DIREITA) -->
+        <div class="w-full md:w-7/12 h-[50vh] md:h-screen sticky top-0">
+            <div id="map"></div>
+        </div>
+
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Coordenadas aproximadas focadas nos polos pecuários de Uberaba-MG
+        const locations = [
+            { lat: -19.7335, lng: -47.9545, zoom: 15, title: "Estação 1: Parque Fernando Costa (ABCZ)" },
+            { lat: -19.6720, lng: -47.9890, zoom: 13, title: "Estação 2: Distrito Industrial (Centrais de Genética Bovinas)" },
+            { lat: -19.6050, lng: -48.1150, zoom: 12, title: "Estação 3: Fazendas de Manejo Sustentável e ILPF" },
+            { lat: -19.8220, lng: -48.0550, zoom: 12, title: "Estação 4: Pecuária de Precisão e Confinamento IoT" }
+        ];
+
+        // Inicializa o mapa centralizado em Uberaba
+        const map = L.map('map').setView([locations[0].lat, locations[0].lng], locations[0].zoom);
+
+        // Mapa base (Estilo Voyager do CartoDB para visualização limpa)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        }).addTo(map);
+
+        // Marcador interativo principal
+        const marker = L.marker([locations[0].lat, locations[0].lng]).addTo(map)
+            .bindPopup(locations[0].title)
+            .openPopup();
+
+        // Adiciona círculos de referência para todas as estações no mapa
+        locations.forEach((loc, index) => {
+            L.circleMarker([loc.lat, loc.lng], {
+                radius: 10,
+                fillColor: "#b91c1c", // Vermelho Escuro temático
+                color: "#fff",
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map).bindPopup(loc.title);
+        });
+
+        // Função para transição de tela e atualização de estilo dos cards
+        function moveTo(index) {
+            const loc = locations[index];
+            
+            map.flyTo([loc.lat, loc.lng], loc.zoom, {
+                animate: true,
+                duration: 1.5
+            });
+
+            marker.setLatLng([loc.lat, loc.lng]).setPopupContent(loc.title).openPopup();
+
+            // Gerencia qual card ganha a borda vermelha ativa
+            for (let i = 1; i <= 4; i++) {
+                const card = document.getElementById(`step-${i}`);
+                if (i === index + 1) {
+                    card.classList.add('active-card');
+                } else {
+                    card.classList.remove('active-card');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
